@@ -3,6 +3,7 @@
 
 ---
 
+| :----: | :----:| :----: |
 | Member | ID number | Contact |
 | :--- | :----:| :--- |
 | Mattia Capparella | 1746513 | capparella.1746513 AT studenti.uniroma1.it |
