@@ -92,16 +92,29 @@ class TwoLayerNet(object):
         #############################################################################
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        x0 = np.ones((N,1))
-        a1 = np.concatenate((x0,X),axis=1)
-        W11 = np.concatenate((np.reshape(b1,(1,-1)),W1),axis=0)
-        z2 = np.dot(a1,W11)
-        a2 = np.where(z2>=0, z2, 0)
-        x02 = np.ones((a2.shape[0],1))
-        a2 = np.concatenate((x02,a2),axis=1)
-        W22 = np.concatenate((np.reshape(b2,(1,-1)),W2),axis=0)
-        z3 =  np.dot(a2,W22)
-        a3 = np.exp(z3) / np.sum(np.exp(z3),axis=1, keepdims=True)
+        
+        # Input and Weights concatenations
+        x0 = np.ones((N,1)) # dummy variable
+        a1 = np.concatenate((x0, X), axis=1)
+        b1 = np.reshape(b1,(1,-1)) # prepare for concatenation
+        W1 = np.concatenate((b1, W1), axis=0)
+        
+        # Define the Activation Functions
+        ReLU = lambda x: np.where(x>=0, x, 0)
+        Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
+
+        # Perform the 1st Linear Operation + Activation
+        z2 = np.dot(a1,W1)
+        a2 = ReLU(z2) #np.where(z2>=0, z2, 0) 
+        x02 = np.ones((a2.shape[0], 1))
+        a2 = np.concatenate((x02,a2), axis=1)
+        
+        # Perform the 2nd Linear Operation
+        W2 = np.concatenate((np.reshape(b2, (1,-1)), W2), axis=0)
+        z3 =  np.dot(a2, W2)
+        
+        # Apply the Softmax
+        a3 = Softmax(z3) #np.exp(z3) / np.sum(np.exp(z3),axis=1, keepdims=True)
 
         scores=a3
 
@@ -129,9 +142,9 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        
-        loss = np.sum(-np.log(a3[np.arange(a3.shape[0]),y]))/N + reg*(np.sum(np.square(W11)) + np.sum(np.square(W22)))
-        
+        J =  -np.log(a3[np.arange(a3.shape[0]),y]) # compute the loss for ALL the input sample in X
+        loss_no_reg = np.sum(J)/N # Average over the whole training set
+        loss = loss_no_reg + reg*(np.sum(np.square(W1)) + np.sum(np.square(W2))) # Add the L2 regularization term
         
         pass
 
