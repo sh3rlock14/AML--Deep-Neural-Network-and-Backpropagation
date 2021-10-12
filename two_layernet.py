@@ -92,8 +92,18 @@ class TwoLayerNet(object):
         #############################################################################
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        x0 = np.ones((N,1))
+        a1 = np.concatenate((x0,X),axis=1)
+        W11 = np.concatenate((np.reshape(b1,(1,-1)),W1),axis=0)
+        z2 = np.dot(a1,W11)
+        a2 = np.where(z2>=0, z2, 0)
+        x02 = np.ones((a2.shape[0],1))
+        a2 = np.concatenate((x02,a2),axis=1)
+        W22 = np.concatenate((np.reshape(b2,(1,-1)),W2),axis=0)
+        z3 =  np.dot(a2,W22)
+        a3 = np.exp(z3) / np.sum(np.exp(z3),axis=1, keepdims=True)
 
-        
+        scores=a3
 
         pass
 
@@ -118,7 +128,9 @@ class TwoLayerNet(object):
         # Implement the loss for the softmax output layer
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
         
+        loss = np.sum(-np.log(a3[np.arange(a3.shape[0]),y]))/N + reg*(np.sum(np.square(W11)) + np.sum(np.square(W22)))
         
         
         pass
