@@ -142,6 +142,7 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        
         J =  -np.log(a3[np.arange(a3.shape[0]),y]) # compute the loss for ALL the input sample in X
         loss_no_reg = np.sum(J)/N # Average over the whole training set
         loss = loss_no_reg + reg*(np.sum(np.square(W1)) + np.sum(np.square(W2))) # Add the L2 regularization term
