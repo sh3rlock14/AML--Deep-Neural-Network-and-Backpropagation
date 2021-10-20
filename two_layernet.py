@@ -78,8 +78,9 @@ class TwoLayerNet(object):
         """
         
         # Unpack variables from the params dictionary
+
         W1, b1 = self.params['W1'], self.params['b1']
-        W2, b2 = self.params['W2'], self.params['b2'] #shapes 10,3 -- 3
+        W2, b2 = self.params['W2'], self.params['b2']
         N, D = X.shape
 
         # Compute the forward pass
@@ -93,7 +94,31 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        
+        # Input and Weights concatenations
+        # Input and Weights concatenations
+        x0 = np.ones((N, 1))  # dummy variable
+        a1 = np.concatenate((x0, X), axis=1)
+        b1 = np.reshape(b1, (1, -1))  # prepare for concatenation
+        W1 = np.concatenate((b1, W1), axis=0)
+
+        # Define the Activation Functions
+        ReLU = lambda x: np.where(x >= 0, x, 0)
+        Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
+
+        # Perform the 1st Linear Operation + Activation
+        z2 = np.dot(a1, W1)
+        a2 = ReLU(z2)  # np.where(z2>=0, z2, 0)
+        x02 = np.ones((a2.shape[0], 1))
+        a2 = np.concatenate((x02, a2), axis=1)
+
+        # Perform the 2nd Linear Operation
+        W2 = np.concatenate((np.reshape(b2, (1, -1)), W2), axis=0)
+        z3 = np.dot(a2, W2)
+
+        # Apply the Softmax
+        a3 = Softmax(z3)  # np.exp(z3) / np.sum(np.exp(z3),axis=1, keepdims=True)
+
+        scores = a3
 
         pass
 
@@ -118,9 +143,12 @@ class TwoLayerNet(object):
         # Implement the loss for the softmax output layer
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        
-        
-        
+
+        J = -np.log(a3[np.arange(a3.shape[0]), y])  # compute the loss for ALL the input sample in X
+
+        loss_no_reg = np.sum(J) / N  # Average over the whole training set
+        loss = loss_no_reg + reg * (np.sum(np.square(W1)) + np.sum(np.square(W2)))  # Add the L2 regularization term
+
         pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -135,8 +163,27 @@ class TwoLayerNet(object):
         ##############################################################################
 
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        
-        
+        softmax = a3
+        KrenckorDelta = np.zeros((5, 3))
+
+        for element in [0, 1, 2, 3, 4]:  # List that return the row index for our KrenckorDelta array
+            KrenckorDelta[element, y[element]] = 1
+
+        softmax_grad = (softmax - KrenckorDelta)
+        grads['W2'] = (((np.array(a2[:, 1:11]).transpose()).dot(softmax_grad)) / N) + 2 * reg * W2[1:11, :]
+        grads['b2'] = np.sum(softmax_grad / N, axis=0)
+
+        def reluDerivative(x):
+            x[x <= 0] = 0
+            x[x > 0] = 1
+            return x
+
+        partial1 = softmax_grad.dot(np.array(W2[1:11, :]).transpose())
+        partial2 = partial1 * (reluDerivative(z2))
+
+
+        grads['W1'] = ((np.array(X).transpose()).dot(partial2)) / N + 2 * reg * W1[1:11, :]
+        grads['b1'] = np.sum(partial2 / N, axis=0)
 
         pass
 
