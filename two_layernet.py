@@ -315,8 +315,15 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        
+        # Define the Activation Functions
+        ReLU = lambda x: np.where(x >= 0, x, 0)
+        Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
 
+        z2 = np.dot(X, self.params['W1']) + self.params['b1']
+        a2 = ReLU(z2)
+        z3 = np.dot(a2, self.params['W2']) + self.params['b2']
+        a3 = Softmax(z3)
+        y_pred = np.argmax(a3, axis=1)
 
         pass
 
