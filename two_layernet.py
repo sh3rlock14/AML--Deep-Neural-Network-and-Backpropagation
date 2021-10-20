@@ -108,6 +108,7 @@ class TwoLayerNet(object):
         # Perform the 1st Linear Operation + Activation
         z2 = np.dot(a1, W1)
         a2 = ReLU(z2)  # np.where(z2>=0, z2, 0)
+
         x02 = np.ones((a2.shape[0], 1))
         a2 = np.concatenate((x02, a2), axis=1)
 
@@ -164,13 +165,15 @@ class TwoLayerNet(object):
 
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         softmax = a3
-        KrenckorDelta = np.zeros((5, 3))
+        KrenckorDelta = np.zeros((X.shape[0], X.shape[1] - 1))
 
-        for element in [0, 1, 2, 3, 4]:  # List that return the row index for our KrenckorDelta array
+
+        for element in list(range(0, X.shape[0])):  # List that return the row index for our KrenckorDelta array
             KrenckorDelta[element, y[element]] = 1
 
         softmax_grad = (softmax - KrenckorDelta)
-        grads['W2'] = (((np.array(a2[:, 1:11]).transpose()).dot(softmax_grad)) / N) + 2 * reg * W2[1:11, :]
+
+        grads['W2'] = (((np.array(a2[:, 1:a2.shape[1]]).transpose()).dot(softmax_grad)) / N) + 2 * reg * W2[1:W2.shape[0], :]
         grads['b2'] = np.sum(softmax_grad / N, axis=0)
 
         def reluDerivative(x):
@@ -178,11 +181,11 @@ class TwoLayerNet(object):
             x[x > 0] = 1
             return x
 
-        partial1 = softmax_grad.dot(np.array(W2[1:11, :]).transpose())
+        partial1 = softmax_grad.dot(np.array(W2[1:W2.shape[0], :]).transpose())
         partial2 = partial1 * (reluDerivative(z2))
 
 
-        grads['W1'] = ((np.array(X).transpose()).dot(partial2)) / N + 2 * reg * W1[1:11, :]
+        grads['W1'] = ((np.array(X).transpose()).dot(partial2)) / N + 2 * reg * W1[1:W1.shape[0], :]
         grads['b1'] = np.sum(partial2 / N, axis=0)
 
         pass
@@ -227,16 +230,20 @@ class TwoLayerNet(object):
         for it in range(num_iters):
             X_batch = X
             y_batch = y
-
             #########################################################################
             # TODO: Create a random minibatch of training data and labels, storing  #
             # them in X_batch and y_batch respectively.                             #
             #########################################################################
             
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-            
-            
-            
+
+            m = y.shape[0]  # number of examples
+
+            # Lets shuffle X and Y
+            permutation = list(np.random.permutation(m))  # shuffled index of examples
+            X_batch = X[permutation, :]
+            y_batch = y[permutation]
+
             pass
         
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -253,8 +260,11 @@ class TwoLayerNet(object):
             #########################################################################
             
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-            
-            
+
+            self.params['W1'] = self.params['W1'] - learning_rate*grads['W1']
+            self.params['W2'] = self.params['W2'] - learning_rate * grads['W2']
+            self.params['b1'] = self.params['b1'] - learning_rate * grads['b1']
+            self.params['b2'] = self.params['b2'] - learning_rate * grads['b2']
             
             pass
         
