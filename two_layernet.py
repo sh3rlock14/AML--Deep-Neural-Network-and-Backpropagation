@@ -165,10 +165,10 @@ class TwoLayerNet(object):
 
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         softmax = a3
-        KrenckorDelta = np.zeros((X.shape[0], X.shape[1] - 1))
+        KrenckorDelta = np.zeros((a3.shape[0],a3.shape[1]))
 
 
-        for element in list(range(0, X.shape[0])):  # List that return the row index for our KrenckorDelta array
+        for element in list(range(0, a3.shape[0])):  # List that return the row index for our KrenckorDelta array
             KrenckorDelta[element, y[element]] = 1
 
         softmax_grad = (softmax - KrenckorDelta)
@@ -315,6 +315,7 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        
 
 
         pass
