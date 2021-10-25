@@ -166,24 +166,43 @@ class TwoLayerNet(object):
         softmax = a3
         KrenckorDelta = np.zeros((5, 3))
 
-        for element in [0, 1, 2, 3, 4]:  # List that return the row index for our KrenckorDelta array
-            KrenckorDelta[element, y[element]] = 1
+        for dp in range(N):  # For every datapoint, create its class hot-encoding
+            KrenckorDelta[dp, y[dp]] = 1
 
-        softmax_grad = (softmax - KrenckorDelta)
-        grads['W2'] = (((np.array(a2[:, 1:11]).transpose()).dot(softmax_grad)) / N) + 2 * reg * W2[1:11, :]
-        grads['b2'] = np.sum(softmax_grad / N, axis=0)
+        softmax_grad = (1/N)*(softmax - KrenckorDelta)
+        grads['W2'] = (((np.array(a2[:, 1:a2.shape[1]]).transpose()).dot(softmax_grad))) + (2 * reg * W2[1:W2.shape[0], :])
+        grads['b2'] = np.sum(softmax_grad, axis=0)
 
-        def reluDerivative(x):
-            x[x <= 0] = 0
-            x[x > 0] = 1
-            return x
+        """ THIS SNIPPET IMPLEMENTS THE DERIVATIONS WE MADE ON "PAPER" JUST TO VERIFY THE CORRECTNESS OF THE IMPLICIT MULTIPLICATION
+        c = b2.shape[0]
+        dawb = np.zeros((1,c,N,c))
+        dbb = np.zeros((1,c,1,c))
+        dbb[:,np.arange(3),:,np.arange(3)] = 1
+        tmp = (dawb + dbb)
+        grads['b2tmp'] = np.einsum("abcd, cd -> ab",tmp,softmax_grad)
 
-        partial1 = softmax_grad.dot(np.array(W2[1:11, :]).transpose())
-        partial2 = partial1 * (reluDerivative(z2))
+        """
+        dReLU = lambda x: np.where(x > 0, 1, 0)
+        ReLUHadamard = lambda a,x : np.where(a>0, x, 0)
+        
+        runMattia = True
+                              ### CODICE DI MATTIA ###
+        if runMattia:
+          tmp1 = ReLUHadamard(a2[:,1:], softmax_grad@W2[1:,:].transpose()) # slide 107: invece di calcolare la jacobiana, utilizzo la ReLUHadamard
+          tmp3 = X.transpose().dot(tmp1) + (2*reg*W1[1:, :])
 
+          grads["W1"] = tmp3 
 
-        grads['W1'] = ((np.array(X).transpose()).dot(partial2)) / N + 2 * reg * W1[1:11, :]
-        grads['b1'] = np.sum(partial2 / N, axis=0)
+          grads["b1"] = np.sum(tmp1, axis=0)
+        
+        else: 
+
+                                ### CODICE DI ANTONIO ###
+          partial1 = softmax_grad.dot(np.array(W2[1:, :]).transpose())
+          partial2 = partial1 * dReLU(a2[:,1:])  # this is correct
+
+          grads['W1'] = ((np.array(X).transpose()).dot(partial2)) + (2*reg*W1[1:, :])
+          grads['b1'] = np.sum(partial2 / N, axis=0)
 
         pass
 
