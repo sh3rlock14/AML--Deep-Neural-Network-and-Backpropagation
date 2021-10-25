@@ -108,6 +108,7 @@ class TwoLayerNet(object):
         # Perform the 1st Linear Operation + Activation
         z2 = np.dot(a1, W1)
         a2 = ReLU(z2)  # np.where(z2>=0, z2, 0)
+
         x02 = np.ones((a2.shape[0], 1))
         a2 = np.concatenate((x02, a2), axis=1)
 
@@ -164,7 +165,8 @@ class TwoLayerNet(object):
 
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         softmax = a3
-        KrenckorDelta = np.zeros((5, 3))
+        KrenckorDelta = np.zeros((a3.shape[0],a3.shape[1]))
+
 
         for dp in range(N):  # For every datapoint, create its class hot-encoding
             KrenckorDelta[dp, y[dp]] = 1
@@ -251,16 +253,20 @@ class TwoLayerNet(object):
         for it in range(num_iters):
             X_batch = X
             y_batch = y
-
             #########################################################################
             # TODO: Create a random minibatch of training data and labels, storing  #
             # them in X_batch and y_batch respectively.                             #
             #########################################################################
             
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-            
-            
-            
+
+            m = y.shape[0]  # number of examples
+
+            # Lets shuffle X and Y
+            permutation = list(np.random.permutation(m))  # shuffled index of examples
+            X_batch = X[permutation, :]
+            y_batch = y[permutation]
+
             pass
         
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -277,8 +283,11 @@ class TwoLayerNet(object):
             #########################################################################
             
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-            
-            
+
+            self.params['W1'] = self.params['W1'] - learning_rate*grads['W1']
+            self.params['W2'] = self.params['W2'] - learning_rate * grads['W2']
+            self.params['b1'] = self.params['b1'] - learning_rate * grads['b1']
+            self.params['b2'] = self.params['b2'] - learning_rate * grads['b2']
             
             pass
         
@@ -329,7 +338,15 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        # Define the Activation Functions
+        ReLU = lambda x: np.where(x >= 0, x, 0)
+        Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
 
+        z2 = np.dot(X, self.params['W1']) + self.params['b1']
+        a2 = ReLU(z2)
+        z3 = np.dot(a2, self.params['W2']) + self.params['b2']
+        a3 = Softmax(z3)
+        y_pred = np.argmax(a3, axis=1)
 
         pass
 
