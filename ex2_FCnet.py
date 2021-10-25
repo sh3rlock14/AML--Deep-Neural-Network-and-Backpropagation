@@ -28,7 +28,7 @@ def show_net_weights(net):
 #-------------------------- * End of helper functions *--------------------------------
 
 
-
+"""
 #======================================================================================
 # Q1: Implementing forward pass and the loss functions
 #======================================================================================
@@ -38,6 +38,8 @@ def show_net_weights(net):
 # values are numpy arrays.  Below, we initialize toy data and a toy model that
 # we will use to develop your implementation.
 #--------------------------------------------------------------------------------------
+
+
 
 # Create a small net and some toy data to check your implementations.
 # Note that we set the random seed for repeatable experiments.
@@ -120,7 +122,6 @@ for param_name in grads:
     print('%s max relative error: %e' % (param_name, rel_error(param_grad_num, grads[param_name])))
 
 
-
 #======================================================================================
 # Q3: Train the network using gradient descent
 #======================================================================================
@@ -134,6 +135,7 @@ for param_name in grads:
 # Once you have implemented the method, run the code below to train a
 # two-layer network on toy data. You should achieve a training loss less than
 # 0.02.
+
 
 net = init_toy_model()
 stats = net.train(X, y, X, y,
@@ -150,6 +152,7 @@ plt.ylabel('training loss')
 plt.title('Training Loss history')
 plt.show()
 
+"""
 
 # Load the data
 # Now that you have implemented a two-layer network that passes
@@ -172,6 +175,7 @@ plt.gca().axis('off')
 plt.show()
 
 
+
 # Train a network
 # To train our network we will use SGD. In addition, we will
 # adjust the learning rate with an exponential learning rate schedule as
@@ -181,6 +185,8 @@ plt.show()
 input_size = 32 * 32 * 3
 hidden_size = 50
 num_classes = 10
+
+"""
 net = TwoLayerNet(input_size, hidden_size, num_classes)
 # Train the network
 stats = net.train(X_train, y_train, X_val, y_val,
@@ -227,7 +233,7 @@ plt.show()
 # Visualize the weights of the network
 plt.figure(5)
 show_net_weights(net)
-
+"""
 
 # Tune your hyperparameters
 #
@@ -274,7 +280,53 @@ best_net = None # store the best model into this
 #################################################################################
 
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+from random import choice
 
+percentage= lambda n,p: int((n * p) / 100) 
+n = X_val.shape[0]
+p = 90
+v = percentage(n,p)
+X_train, y_train, X_val, y_val = X_val[0:v,:], y_val[0:v], X_val[v+1:,:], y_val[v+1:] 
+
+hidden_sizes = 128 #np.linspace(10,50,num=10,dtype=int)
+learning_rates = np.linspace(0.004,0.0044,5)
+train_epochs = 1000 #np.linspace(1000,1500,10, dtype=int)
+regularization_strenghts = [0.1] #np.linspace(0.0,1.0,5)
+
+num_models = 5
+curr_best_acc = np.NINF
+
+i = 0
+n_models = len(learning_rates)*len(regularization_strenghts)
+for l in learning_rates:
+    for r in regularization_strenghts:
+        print("Modello n°: {} su {}".format(i, n_models))
+        i+= 1
+        hs = hidden_sizes #choice(hidden_sizes)
+        its = train_epochs #choice(train_epochs)
+        lr = l #choice(learning_rates)
+        reg_l = r #regularization_strenghts #choice(regularization_strenghts)
+        
+        print(hs,its,lr,reg_l)
+
+        net = TwoLayerNet(input_size, hs , num_classes)
+        # Train the network
+        stats = net.train(X_train, y_train, X_val, y_val,
+                    num_iters=its,
+                    batch_size=64,
+                    learning_rate=lr,
+                    learning_rate_decay=0.95,
+                    reg=reg_l,
+                    verbose=True)
+
+        # Predict on the validation set
+        val_acc = (net.predict(X_val) == y_val).mean()
+        print('Validation accuracy: ', val_acc)
+
+
+        if val_acc > curr_best_acc:
+            best_net = net
+            curr_best_acc = val_acc
 
 
 pass

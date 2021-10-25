@@ -3,7 +3,6 @@ from __future__ import print_function
 from builtins import range
 from builtins import object
 import numpy as np
-import scipy.special
 import matplotlib.pyplot as plt
 try:
     xrange          # Python 2
@@ -106,7 +105,6 @@ class TwoLayerNet(object):
         ReLU = lambda x: np.where(x >= 0, x, 0)
         Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
 
-
         # Perform the 1st Linear Operation + Activation
         z2 = np.dot(a1, W1)
         a2 = ReLU(z2)  # np.where(z2>=0, z2, 0)
@@ -119,8 +117,7 @@ class TwoLayerNet(object):
         z3 = np.dot(a2, W2)
 
         # Apply the Softmax
-        a3 = scipy.special.softmax(z3, axis=1) #Softmax(a3) TO CHECK THE RESULTS
-        
+        a3 = Softmax(z3)  # np.exp(z3) / np.sum(np.exp(z3),axis=1, keepdims=True)
 
         scores = a3
 
@@ -148,9 +145,8 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        #PROBLEM: might incurr in val = 0  
-        J = -scipy.special.log_softmax(z3, axis=1)[np.arange(a3.shape[0]), y] #J = -np.log(a3[np.arange(a3.shape[0]), y])  # compute the loss for ALL the input sample in X
-        
+        J = -np.log(a3[np.arange(a3.shape[0]), y])  # compute the loss for ALL the input sample in X
+
         loss_no_reg = np.sum(J) / N  # Average over the whole training set
         loss = loss_no_reg + reg * (np.sum(np.square(W1)) + np.sum(np.square(W2)))  # Add the L2 regularization term
 
@@ -196,13 +192,14 @@ class TwoLayerNet(object):
             x[x > 0] = 1
             return x
         
-        runMattia = True
+        runMattia = False
                               ### CODICE DI MATTIA ###
         if runMattia:
           tmp1 = ReLUHadamard(a2[:,1:], softmax_grad@W2[1:,:].transpose()) # slide 107: invece di calcolare la jacobiana, utilizzo la ReLUHadamard
           tmp3 = X.transpose().dot(tmp1) + (2*reg*W1[1:, :])
 
-          grads["W1"] = tmp3
+          grads["W1"] = tmp3 
+
           grads["b1"] = np.sum(tmp1, axis=0)
         
         else: 
@@ -254,7 +251,6 @@ class TwoLayerNet(object):
         val_acc_history = []
 
         for it in range(num_iters):
-            #print("It: ",it)
             X_batch = X
             y_batch = y
             #########################################################################
@@ -346,11 +342,10 @@ class TwoLayerNet(object):
         ReLU = lambda x: np.where(x >= 0, x, 0)
         Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
 
-
         z2 = np.dot(X, self.params['W1']) + self.params['b1']
         a2 = ReLU(z2)
         z3 = np.dot(a2, self.params['W2']) + self.params['b2']
-        a3 = scipy.special.softmax(z3, axis=1) #Softmax(z3)
+        a3 = Softmax(z3)
         y_pred = np.argmax(a3, axis=1)
 
         pass
