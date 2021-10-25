@@ -184,8 +184,13 @@ class TwoLayerNet(object):
         """
         dReLU = lambda x: np.where(x > 0, 1, 0)
         ReLUHadamard = lambda a,x : np.where(a>0, x, 0)
+
+        def reluDerivative(x):
+            x[x <= 0] = 0
+            x[x > 0] = 1
+            return x
         
-        runMattia = True
+        runMattia = False
                               ### CODICE DI MATTIA ###
         if runMattia:
           tmp1 = ReLUHadamard(a2[:,1:], softmax_grad@W2[1:,:].transpose()) # slide 107: invece di calcolare la jacobiana, utilizzo la ReLUHadamard
@@ -199,7 +204,7 @@ class TwoLayerNet(object):
 
                                 ### CODICE DI ANTONIO ###
           partial1 = softmax_grad.dot(np.array(W2[1:, :]).transpose())
-          partial2 = partial1 * dReLU(a2[:,1:])  # this is correct
+          partial2 = partial1 * (reluDerivative(z2))
 
           grads['W1'] = ((np.array(X).transpose()).dot(partial2)) + (2*reg*W1[1:, :])
           grads['b1'] = np.sum(partial2 / N, axis=0)
