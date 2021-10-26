@@ -112,7 +112,13 @@ class MultiLayerPerceptron(nn.Module):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        
+        self.input_size = input_size
+        self.hidden_size  = hidden_layers
+
+        layers.append(nn.Flatten())
+        layers.append(nn.Linear(self.input_size,self.hidden_size[0]))
+        layers.append(nn.ReLU())
+        layers.append(nn.Linear(self.hidden_size[0],num_classes))
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -130,7 +136,9 @@ class MultiLayerPerceptron(nn.Module):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-
+        out = x
+        for layer in self.layers :
+          out = layer(out)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         
@@ -169,7 +177,17 @@ if train:
             #################################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+            # clear gradients:
+            optimizer.zero_grad()
 
+            # model outputs:
+            out = model(images)
+
+            #loss calculation
+            loss = criterion(out, labels)
+
+            loss.backward()
+            optimizer.step()
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -193,7 +211,12 @@ if train:
                 ####################################################
                 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            
+                out = model(images)
+                _, predicted = torch.max(out.data, 1)
+                
+                # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
 
                 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
                 total += labels.size(0)
@@ -244,7 +267,8 @@ else:
             ####################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            
+            out = model(images)
+            _, predicted = torch.max(out.data, 1)
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
             total += labels.size(0)
