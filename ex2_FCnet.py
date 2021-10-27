@@ -292,9 +292,9 @@ X_train, y_train, X_val, y_val = X_val[0:v,:], y_val[0:v], X_val[v+1:,:], y_val[
 """
 
 hidden_sizes = 128 #np.linspace(10,50,num=10,dtype=int)
-learning_rates = np.linspace(0.002,0.004,1)
-train_epochs = 1000 #np.linspace(1000,1500,10, dtype=int)
-regularization_strenghts = np.linspace(0.25,0.75, 1)
+learning_rates = np.linspace(0.006,0.008,5)
+train_epochs = 1001 #np.linspace(1000,1500,10, dtype=int)
+regularization_strenghts = np.linspace(0.25,0.75, 5)
 
 
 curr_best_acc = np.NINF
@@ -304,7 +304,7 @@ n_models = len(learning_rates)*len(regularization_strenghts)-1
 for l in learning_rates:
     for r in regularization_strenghts:
         print("Modello n°: {} su {}".format(i, n_models))
-        i+= 1
+        
         hs = hidden_sizes #choice(hidden_sizes)
         its = train_epochs #choice(train_epochs)
         lr = l #choice(learning_rates)
@@ -326,7 +326,8 @@ for l in learning_rates:
         val_acc = (net.predict(X_val) == y_val).mean()
         print('Validation accuracy: ', val_acc)
 
-        plt.figure(7)
+        plt.figure(7+i)
+        i+= 1
         plt.subplot(2, 1, 1)
         plt.plot(stats['loss_history'])
         plt.title('Loss history')
@@ -340,7 +341,7 @@ for l in learning_rates:
         plt.xlabel('Epoch')
         plt.ylabel('Classification accuracy')
         plt.legend()
-        plt.show()
+        
 
 
         if val_acc > curr_best_acc:
@@ -351,7 +352,7 @@ for l in learning_rates:
 pass
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+plt.show()
 
 # visualize the weights of the best network
 plt.figure(6)

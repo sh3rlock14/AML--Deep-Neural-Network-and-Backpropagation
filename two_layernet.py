@@ -3,7 +3,9 @@ from __future__ import print_function
 from builtins import range
 from builtins import object
 import numpy as np
+from numpy.core.fromnumeric import size
 import scipy.special
+from scipy.stats import bernoulli
 import matplotlib.pyplot as plt
 try:
     xrange          # Python 2
@@ -109,6 +111,12 @@ class TwoLayerNet(object):
 
         # Perform the 1st Linear Operation + Activation
         z2 = np.dot(a1, W1) + b1
+
+        # Perform the Dropout
+        p = 0.2
+        M = bernoulli.rvs(p, size=(z2.shape))
+        z2 = (z2*M)/(1-p)
+
         a2 = ReLU(z2)  # np.where(z2>=0, z2, 0)
 
         #x02 = np.ones((a2.shape[0], 1))
