@@ -59,6 +59,7 @@ def init_toy_data():
     y = np.array([0, 1, 2, 2, 1])
     return X, y
 
+
 net = init_toy_model()
 X, y = init_toy_data()
 
@@ -120,7 +121,7 @@ for param_name in grads:
     f = lambda W: net.loss(X, y, reg=0.05)[0]
     param_grad_num = eval_numerical_gradient(f, net.params[param_name], verbose=False)
     print('%s max relative error: %e' % (param_name, rel_error(param_grad_num, grads[param_name])))
-
+"""
 
 #======================================================================================
 # Q3: Train the network using gradient descent
@@ -136,7 +137,7 @@ for param_name in grads:
 # two-layer network on toy data. You should achieve a training loss less than
 # 0.02.
 
-
+"""
 net = init_toy_model()
 stats = net.train(X, y, X, y,
             learning_rate=1e-1, reg=5e-6,
@@ -151,8 +152,8 @@ plt.xlabel('iteration')
 plt.ylabel('training loss')
 plt.title('Training Loss history')
 plt.show()
-
 """
+
 
 # Load the data
 # Now that you have implemented a two-layer network that passes
@@ -233,8 +234,8 @@ plt.show()
 # Visualize the weights of the network
 plt.figure(5)
 show_net_weights(net)
-"""
 
+"""
 # Tune your hyperparameters
 #
 # **What's wrong?**. Looking at the visualizations above, we see that the loss
@@ -282,22 +283,24 @@ best_net = None # store the best model into this
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 from random import choice
 
+"""
 percentage= lambda n,p: int((n * p) / 100) 
 n = X_val.shape[0]
 p = 90
 v = percentage(n,p)
 X_train, y_train, X_val, y_val = X_val[0:v,:], y_val[0:v], X_val[v+1:,:], y_val[v+1:] 
+"""
 
 hidden_sizes = 128 #np.linspace(10,50,num=10,dtype=int)
-learning_rates = np.linspace(0.004,0.0044,5)
+learning_rates = np.linspace(0.002,0.004,1)
 train_epochs = 1000 #np.linspace(1000,1500,10, dtype=int)
-regularization_strenghts = [0.1] #np.linspace(0.0,1.0,5)
+regularization_strenghts = np.linspace(0.25,0.75, 1)
 
-num_models = 5
+
 curr_best_acc = np.NINF
 
 i = 0
-n_models = len(learning_rates)*len(regularization_strenghts)
+n_models = len(learning_rates)*len(regularization_strenghts)-1
 for l in learning_rates:
     for r in regularization_strenghts:
         print("Modello n°: {} su {}".format(i, n_models))
@@ -313,7 +316,7 @@ for l in learning_rates:
         # Train the network
         stats = net.train(X_train, y_train, X_val, y_val,
                     num_iters=its,
-                    batch_size=64,
+                    batch_size=256,
                     learning_rate=lr,
                     learning_rate_decay=0.95,
                     reg=reg_l,
@@ -322,6 +325,22 @@ for l in learning_rates:
         # Predict on the validation set
         val_acc = (net.predict(X_val) == y_val).mean()
         print('Validation accuracy: ', val_acc)
+
+        plt.figure(7)
+        plt.subplot(2, 1, 1)
+        plt.plot(stats['loss_history'])
+        plt.title('Loss history')
+        plt.xlabel('Iteration')
+        plt.ylabel('Loss')
+
+        plt.subplot(2, 1, 2)
+        plt.plot(stats['train_acc_history'], label='train')
+        plt.plot(stats['val_acc_history'], label='val')
+        plt.title('Classification accuracy history')
+        plt.xlabel('Epoch')
+        plt.ylabel('Classification accuracy')
+        plt.legend()
+        plt.show()
 
 
         if val_acc > curr_best_acc:
@@ -345,4 +364,3 @@ show_net_weights(best_net)
 
 test_acc = (best_net.predict(X_test) == y_test).mean()
 print('Test accuracy: ', test_acc)
-

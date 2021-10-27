@@ -96,27 +96,27 @@ class TwoLayerNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # Input and Weights concatenations
-        # Input and Weights concatenations
-        x0 = np.ones((N, 1))  # dummy variable
-        a1 = np.concatenate((x0, X), axis=1)
-        b1 = np.reshape(b1, (1, -1))  # prepare for concatenation
-        W1 = np.concatenate((b1, W1), axis=0)
+        #x0 = np.ones((N, 1))  # dummy variable
+        #a1 = np.concatenate((x0, X), axis=1)
+        a1 = X
+        #b1 = np.reshape(b1, (1, -1))  # prepare for concatenation
+        #W1 = np.concatenate((b1, W1), axis=0)
 
         # Define the Activation Functions
         ReLU = lambda x: np.where(x >= 0, x, 0)
-        Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
+        Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True) # This version work
 
 
         # Perform the 1st Linear Operation + Activation
-        z2 = np.dot(a1, W1)
+        z2 = np.dot(a1, W1) + b1
         a2 = ReLU(z2)  # np.where(z2>=0, z2, 0)
 
-        x02 = np.ones((a2.shape[0], 1))
-        a2 = np.concatenate((x02, a2), axis=1)
+        #x02 = np.ones((a2.shape[0], 1))
+        #a2 = np.concatenate((x02, a2), axis=1)
 
         # Perform the 2nd Linear Operation
-        W2 = np.concatenate((np.reshape(b2, (1, -1)), W2), axis=0)
-        z3 = np.dot(a2, W2)
+        #W2 = np.concatenate((np.reshape(b2, (1, -1)), W2), axis=0)
+        z3 = np.dot(a2, W2) + b2
 
         # Apply the Softmax
         a3 = scipy.special.softmax(z3, axis=1) #Softmax(a3) TO CHECK THE RESULTS
@@ -176,7 +176,7 @@ class TwoLayerNet(object):
             KrenckorDelta[dp, y[dp]] = 1
 
         softmax_grad = (1/N)*(softmax - KrenckorDelta)
-        grads['W2'] = (((np.array(a2[:, 1:a2.shape[1]]).transpose()).dot(softmax_grad))) + (2 * reg * W2[1:W2.shape[0], :])
+        grads['W2'] = (((np.array(a2).transpose()).dot(softmax_grad))) + (2 * reg * W2)#(((np.array(a2[:, 1:a2.shape[1]]).transpose()).dot(softmax_grad))) + (2 * reg * W2[1:W2.shape[0], :])
         grads['b2'] = np.sum(softmax_grad, axis=0)
 
         """ THIS SNIPPET IMPLEMENTS THE DERIVATIONS WE MADE ON "PAPER" JUST TO VERIFY THE CORRECTNESS OF THE IMPLICIT MULTIPLICATION
@@ -196,24 +196,16 @@ class TwoLayerNet(object):
             x[x > 0] = 1
             return x
         
-        runMattia = True
-                              ### CODICE DI MATTIA ###
-        if runMattia:
-          tmp1 = ReLUHadamard(a2[:,1:], softmax_grad@W2[1:,:].transpose()) # slide 107: invece di calcolare la jacobiana, utilizzo la ReLUHadamard
-          tmp3 = X.transpose().dot(tmp1) + (2*reg*W1[1:, :])
-
-          grads["W1"] = tmp3
-          grads["b1"] = np.sum(tmp1, axis=0)
         
-        else: 
+                              ### CODICE DI MATTIA ###
+        
+        tmp1 = ReLUHadamard(a2, softmax_grad@W2.transpose()) #ReLUHadamard(a2[:,1:], softmax_grad@W2[1:,:].transpose()) # slide 107: invece di calcolare la jacobiana, utilizzo la ReLUHadamard
+        tmp3 = X.transpose().dot(tmp1) + (2*reg*W1) #X.transpose().dot(tmp1) + (2*reg*W1[1:, :])
 
-                                ### CODICE DI ANTONIO ###
-          partial1 = softmax_grad.dot(np.array(W2[1:, :]).transpose())
-          partial2 = partial1 * (reluDerivative(z2))
-
-          grads['W1'] = ((np.array(X).transpose()).dot(partial2)) + (2*reg*W1[1:, :])
-          grads['b1'] = np.sum(partial2 / N, axis=0)
-
+        grads["W1"] = tmp3
+        grads["b1"] = np.sum(tmp1, axis=0)
+      
+        
         pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -267,9 +259,9 @@ class TwoLayerNet(object):
             m = y.shape[0]  # number of examples
 
             # Lets shuffle X and Y
-            permutation = list(np.random.permutation(m))  # shuffled index of examples
-            X_batch = X[permutation, :]
-            y_batch = y[permutation]
+            permutation = np.random.permutation(m)  # shuffled index of examples
+            X_batch = X[permutation, :][:batch_size,:]
+            y_batch = y[permutation][:batch_size]
 
             pass
         
