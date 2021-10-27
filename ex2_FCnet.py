@@ -292,10 +292,11 @@ X_train, y_train, X_val, y_val = X_val[0:v,:], y_val[0:v], X_val[v+1:,:], y_val[
 """
 
 hidden_sizes = 128 #np.linspace(10,50,num=10,dtype=int)
-learning_rates = np.linspace(0.006,0.008,5)
+learning_rates = np.linspace(0.002,0.006,5)
 train_epochs = 1001 #np.linspace(1000,1500,10, dtype=int)
 regularization_strenghts = np.linspace(0.25,0.75, 5)
-
+withDropout=True
+dropProb = 0.2
 
 curr_best_acc = np.NINF
 
@@ -320,13 +321,15 @@ for l in learning_rates:
                     learning_rate=lr,
                     learning_rate_decay=0.95,
                     reg=reg_l,
+                    dropout= withDropout,
+                    p= dropProb,
                     verbose=True)
 
         # Predict on the validation set
         val_acc = (net.predict(X_val) == y_val).mean()
         print('Validation accuracy: ', val_acc)
 
-        plt.figure(7+i)
+        plt.figure(7+i) # create a figure for each of the trained model
         i+= 1
         plt.subplot(2, 1, 1)
         plt.plot(stats['loss_history'])
@@ -350,9 +353,10 @@ for l in learning_rates:
 
 
 pass
+plt.show() # Plot all the Histories at once
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-plt.show()
+
 
 # visualize the weights of the best network
 plt.figure(6)

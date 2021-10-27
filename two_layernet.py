@@ -56,7 +56,7 @@ class TwoLayerNet(object):
 
 
 
-    def loss(self, X, y=None, reg=0.0):
+    def loss(self, X, y=None, reg=0.0, dropout=False, p=0.2):
         """
         Compute the loss and gradients for a two-layer fully connected neural
         network.
@@ -98,38 +98,41 @@ class TwoLayerNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # Input and Weights concatenations
-        #x0 = np.ones((N, 1))  # dummy variable
-        #a1 = np.concatenate((x0, X), axis=1)
         a1 = X
-        #b1 = np.reshape(b1, (1, -1))  # prepare for concatenation
-        #W1 = np.concatenate((b1, W1), axis=0)
 
         # Define the Activation Functions
         ReLU = lambda x: np.where(x >= 0, x, 0)
-        Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True) # This version work
+        Softmax = lambda x: np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True) # This version work, but sometmes cause exp() overflow (we tried also (x-x.max())
 
-
-        # Perform the 1st Linear Operation + Activation
+        # Perform the 1st Linear Operation
         z2 = np.dot(a1, W1) + b1
 
         # Perform the Dropout
-        p = 0.2
-        M = bernoulli.rvs(p, size=(z2.shape))
-        z2 = (z2*M)/(1-p)
+        """
+        This part is for the Q3_b:
+        > The dropout strategy can be activated setting `dropout=True`
+        > by deafult `p=0.2`
+        """
 
+        if (dropout):
+          M = bernoulli.rvs(p, size=(z2.shape))
+          z2 = (z2*M)/(1-p) # Perform the inverse dropout -> no modifications required for predict()
+
+        # Apply the Activation Function
         a2 = ReLU(z2)  # np.where(z2>=0, z2, 0)
 
-        #x02 = np.ones((a2.shape[0], 1))
-        #a2 = np.concatenate((x02, a2), axis=1)
-
+        
+        
         # Perform the 2nd Linear Operation
-        #W2 = np.concatenate((np.reshape(b2, (1, -1)), W2), axis=0)
         z3 = np.dot(a2, W2) + b2
+
+
+        # HERE CAN BE INSERTED ANOTHER "DROPOUT LAYER"
 
         # Apply the Softmax
         a3 = scipy.special.softmax(z3, axis=1) #Softmax(a3) TO CHECK THE RESULTS
         
-
+        # Prepare the first partial output
         scores = a3
 
         pass
@@ -156,7 +159,12 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        #PROBLEM: might incurr in val = 0  
+        """
+        By using our version of Softmax, altough returning the same values for the 'toy model', we incurred in
+        exp() Overflow problem: from here the use of scipy's log_softmax
+
+        It can be custom_made by applying the log property of division: log(exp(x)/Sum_j exp(x_j)) -> log(exp(x)) - log(Sum_j exp(x_j))
+        """  
         J = -scipy.special.log_softmax(z3, axis=1)[np.arange(a3.shape[0]), y] #J = -np.log(a3[np.arange(a3.shape[0]), y])  # compute the loss for ALL the input sample in X
         
         loss_no_reg = np.sum(J) / N  # Average over the whole training set
@@ -177,12 +185,13 @@ class TwoLayerNet(object):
 
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         softmax = a3
-        KrenckorDelta = np.zeros((a3.shape[0],a3.shape[1]))
+        KrenckorDelta = np.zeros((a3.shape[0],a3.shape[1])) # Indicator function
 
 
         for dp in range(N):  # For every datapoint, create its class hot-encoding
             KrenckorDelta[dp, y[dp]] = 1
 
+        # Apply the derivation formulas derived in the `report` 
         softmax_grad = (1/N)*(softmax - KrenckorDelta)
         grads['W2'] = (((np.array(a2).transpose()).dot(softmax_grad))) + (2 * reg * W2)#(((np.array(a2[:, 1:a2.shape[1]]).transpose()).dot(softmax_grad))) + (2 * reg * W2[1:W2.shape[0], :])
         grads['b2'] = np.sum(softmax_grad, axis=0)
@@ -196,16 +205,8 @@ class TwoLayerNet(object):
         grads['b2tmp'] = np.einsum("abcd, cd -> ab",tmp,softmax_grad)
 
         """
-        dReLU = lambda x: np.where(x > 0, 1, 0)
-        ReLUHadamard = lambda a,x : np.where(a>0, x, 0)
-
-        def reluDerivative(x):
-            x[x <= 0] = 0
-            x[x > 0] = 1
-            return x
-        
-        
-                              ### CODICE DI MATTIA ###
+        dReLU = lambda x: np.where(x > 0, 1, 0) # Derivative of the Relu
+        ReLUHadamard = lambda a,x : np.where(a>0, x, 0) 
         
         tmp1 = ReLUHadamard(a2, softmax_grad@W2.transpose()) #ReLUHadamard(a2[:,1:], softmax_grad@W2[1:,:].transpose()) # slide 107: invece di calcolare la jacobiana, utilizzo la ReLUHadamard
         tmp3 = X.transpose().dot(tmp1) + (2*reg*W1) #X.transpose().dot(tmp1) + (2*reg*W1[1:, :])
@@ -213,7 +214,6 @@ class TwoLayerNet(object):
         grads["W1"] = tmp3
         grads["b1"] = np.sum(tmp1, axis=0)
       
-        
         pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -225,7 +225,7 @@ class TwoLayerNet(object):
     def train(self, X, y, X_val, y_val,
               learning_rate=1e-3, learning_rate_decay=0.95,
               reg=5e-6, num_iters=100,
-              batch_size=200, verbose=False):
+              batch_size=200, dropout=False, p=0.2, verbose=False):
         """
         Train this neural network using stochastic gradient descent.
 
@@ -276,7 +276,7 @@ class TwoLayerNet(object):
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
             # Compute loss and gradients using the current minibatch
-            loss, grads = self.loss(X_batch, y=y_batch, reg=reg)
+            loss, grads = self.loss(X_batch, y=y_batch, reg=reg, dropout=dropout, p=p)
             loss_history.append(loss)
 
             #########################################################################
