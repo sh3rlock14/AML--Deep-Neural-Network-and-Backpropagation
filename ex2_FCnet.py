@@ -28,7 +28,7 @@ def show_net_weights(net):
 #-------------------------- * End of helper functions *--------------------------------
 
 
-"""
+
 #======================================================================================
 # Q1: Implementing forward pass and the loss functions
 #======================================================================================
@@ -121,7 +121,7 @@ for param_name in grads:
     f = lambda W: net.loss(X, y, reg=0.05)[0]
     param_grad_num = eval_numerical_gradient(f, net.params[param_name], verbose=False)
     print('%s max relative error: %e' % (param_name, rel_error(param_grad_num, grads[param_name])))
-"""
+
 
 #======================================================================================
 # Q3: Train the network using gradient descent
@@ -187,7 +187,7 @@ input_size = 32 * 32 * 3
 hidden_size = 50
 num_classes = 10
 
-"""
+
 net = TwoLayerNet(input_size, hidden_size, num_classes)
 # Train the network
 stats = net.train(X_train, y_train, X_val, y_val,
@@ -235,7 +235,7 @@ plt.show()
 plt.figure(5)
 show_net_weights(net)
 
-"""
+
 # Tune your hyperparameters
 #
 # **What's wrong?**. Looking at the visualizations above, we see that the loss
